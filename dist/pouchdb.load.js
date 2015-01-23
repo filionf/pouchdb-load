@@ -1,4 +1,65 @@
-;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+},{}],2:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    draining = true;
+    var currentQueue;
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
+        }
+        len = queue.length;
+    }
+    draining = false;
+}
+process.nextTick = function (fun) {
+    queue.push(fun);
+    if (!draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],3:[function(require,module,exports){
 // taken from pouchdb
 "use strict";
 
@@ -238,8 +299,9 @@ function ajax(options, adapterCallback) {
 
 module.exports = ajax;
 
-},{"./blob.js":2,"./errors":4,"./utils":7}],2:[function(require,module,exports){
-var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};"use strict";
+},{"./blob.js":4,"./errors":6,"./utils":9}],4:[function(require,module,exports){
+(function (global){
+"use strict";
 
 //Abstracts constructing a Blob object, so it also works in older
 //browsers that don't support the native Blob constructor. (i.e.
@@ -268,7 +330,8 @@ function createBlob(parts, properties) {
 module.exports = createBlob;
 
 
-},{}],3:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],5:[function(require,module,exports){
 'use strict';
 /* istanbul ignore next */
 var utils = require('./utils');
@@ -361,7 +424,7 @@ Checkpointer.prototype.getCheckpoint = function () {
 };
 /* istanbul ignore next */
 module.exports = Checkpointer;
-},{"./utils":7}],4:[function(require,module,exports){
+},{"./utils":9}],6:[function(require,module,exports){
 "use strict";
 
 function PouchError(opts) {
@@ -493,7 +556,7 @@ exports.error = function (error, reason, name) {
   return new CustomPouchError(reason);
 };
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -508,7 +571,13 @@ exports.load = utils.toPromise(function (url, opts, callback) {
     opts = {};
   }
 
-  ajax({url: url, json: false}, function (err, data) {
+  // Also support objects as URL
+  if (typeof(url) === 'string') {
+    url = { url: url };
+  }
+  url.json = false;
+
+  ajax(url, function (err, data) {
     if (err) {
       return callback(err);
     }
@@ -542,7 +611,7 @@ exports.load = utils.toPromise(function (url, opts, callback) {
       }
 
       db.info().then(function (info) {
-        var src = new db.constructor(opts.proxy);
+        var src = opts.proxy instanceof db.constructor ? opts.proxy : new db.constructor(opts.proxy);
         var target = new db.constructor(info.db_name);
         var replIdOpts = {};
         if (opts.filter) {
@@ -568,8 +637,9 @@ if (typeof window !== 'undefined' && window.PouchDB) {
   window.PouchDB.plugin(exports);
 }
 
-},{"./ajax":1,"./checkpointer":3,"./utils":7}],6:[function(require,module,exports){
-var process=require("__browserify_process"),global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};'use strict';
+},{"./ajax":3,"./checkpointer":5,"./utils":9}],8:[function(require,module,exports){
+(function (process,global){
+'use strict';
 /* istanbul ignore next */
 var crypto = require('crypto');
 /* istanbul ignore next */
@@ -691,8 +761,10 @@ module.exports = function (data, callback) {
   loadNextChunk();
 };
 
-},{"__browserify_process":10,"crypto":9,"spark-md5":31}],7:[function(require,module,exports){
-var process=require("__browserify_process"),global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};'use strict';
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"_process":2,"crypto":1,"spark-md5":31}],9:[function(require,module,exports){
+(function (process,global){
+'use strict';
 
 var Promise;
 /* istanbul ignore next */
@@ -811,7 +883,8 @@ exports.explain404 = function (str) {
     str + '\n\u2665 the PouchDB team');
   }
 };
-},{"./md5":6,"./uuid":8,"__browserify_process":10,"inherits":11,"lie":15,"pouchdb-extend":30}],8:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./md5":8,"./uuid":10,"_process":2,"inherits":11,"lie":15,"pouchdb-extend":30}],10:[function(require,module,exports){
 "use strict";
 
 // BEGIN Math.uuid.js
@@ -898,63 +971,6 @@ function uuid(len, radix) {
 /* istanbul ignore next */
 module.exports = uuid;
 
-
-},{}],9:[function(require,module,exports){
-
-},{}],10:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
-    }
-
-    if (canPost) {
-        var queue = [];
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
-    }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-}
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
 
 },{}],11:[function(require,module,exports){
 if (typeof Object.create === 'function') {
@@ -1099,7 +1115,7 @@ function Promise(resolver) {
     return new Promise(resolver);
   }
   if (typeof resolver !== 'function') {
-    throw new TypeError('reslover must be a function');
+    throw new TypeError('resolver must be a function');
   }
   this.state = states.PENDING;
   this.queue = [];
@@ -1366,8 +1382,9 @@ function immediate(task) {
     scheduleDrain();
   }
 }
-},{"./messageChannel":26,"./mutation.js":27,"./nextTick":9,"./stateChange":28,"./timeout":29}],26:[function(require,module,exports){
-var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};'use strict';
+},{"./messageChannel":26,"./mutation.js":27,"./nextTick":1,"./stateChange":28,"./timeout":29}],26:[function(require,module,exports){
+(function (global){
+'use strict';
 
 exports.test = function () {
   if (global.setImmediate) {
@@ -1385,8 +1402,10 @@ exports.install = function (func) {
     channel.port2.postMessage(0);
   };
 };
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],27:[function(require,module,exports){
-var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};'use strict';
+(function (global){
+'use strict';
 //based off rsvp https://github.com/tildeio/rsvp.js
 //license https://github.com/tildeio/rsvp.js/blob/master/LICENSE
 //https://github.com/tildeio/rsvp.js/blob/master/lib/rsvp/asap.js
@@ -1408,8 +1427,10 @@ exports.install = function (handle) {
     element.data = (called = ++called % 2);
   };
 };
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],28:[function(require,module,exports){
-var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};'use strict';
+(function (global){
+'use strict';
 
 exports.test = function () {
   return 'document' in global && 'onreadystatechange' in global.document.createElement('script');
@@ -1433,6 +1454,7 @@ exports.install = function (handle) {
     return handle;
   };
 };
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],29:[function(require,module,exports){
 'use strict';
 exports.test = function () {
@@ -2226,5 +2248,4 @@ module.exports = extend;
     return SparkMD5;
 }));
 
-},{}]},{},[5])
-;
+},{}]},{},[7]);

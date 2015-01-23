@@ -1,8 +1,8 @@
 {
   "name": "pouchdb-load",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "PouchDB Load - load dumped CouchDB/PouchDB databases on the client",
-  "homepage": "https://github.com/nolanlawson/pouchdb-load",
+  "homepage": "https://github.com/filionf/pouchdb-load",
   "authors": [
     "Nolan Lawson <nolan.lawson@gmail.com>"
   ],
